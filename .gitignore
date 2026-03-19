@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Environment — never commit secrets
+.env
+backend/.env
+
+# React build output
+frontend/build/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+*.log
+npm-debug.log*
+
+# Test coverage
+coverage/
