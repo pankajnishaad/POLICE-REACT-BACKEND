@@ -12,7 +12,7 @@
  *  6. Start listening
  * ─────────────────────────────────────────────────────────────
  */
-// require("node:dns/promises").setServers(["1.1.1.1", "8.8.8.8"]);
+require("node:dns/promises").setServers(["1.1.1.1", "8.8.8.8"]);
 require('dotenv').config();
 
 const express = require('express');
@@ -37,15 +37,33 @@ app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false 
 const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:3000')
   .split(',').map(o => o.trim());
 
+// Log CORS configuration on startup
+console.log('─────────────────────────────────────────────');
+console.log(`🔒  CORS Allowed Origins: ${allowedOrigins.join(', ')}`);
+console.log(`🌍  Environment: ${process.env.NODE_ENV || 'development'}`);
+console.log('─────────────────────────────────────────────');
+
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || process.env.NODE_ENV !== 'production') return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) {
+      return callback(null, true);
+    }
+    // Allow all origins in development
+    if (process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    // In production, check against allowed origins
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    console.error(`❌ CORS blocked origin: ${origin}`);
     callback(new Error(`CORS: origin '${origin}' not allowed.`));
   },
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type'],
   optionsSuccessStatus: 200,
+  credentials: true,
 }));
 
 // Body parsing
